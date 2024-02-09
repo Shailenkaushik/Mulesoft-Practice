@@ -1,0 +1,74 @@
+#%RAML 1.0
+title: practice
+baseUri: http://localhost:8081
+description: This is just for practice
+types:
+  response_data: !include datatype/response_array_dataType.raml
+
+traits:
+  commonError: !include traits/error_trait.raml
+/data:
+  displayName: Lets interact with data
+  description: Lets use all data
+  get:
+    displayName: Get all data
+    description: Returns detail of all students in database
+    is:
+      - commonError
+    responses:
+      200:
+        body:
+          application/json:
+            type: response_data
+            example: !include examples/response_array_example.raml
+      
+  post:
+    displayName: Add student
+
+    description: Add details of new student
+    is:
+      - commonError
+    body:
+      application/json:
+        type: !include datatype/insert_object_api.raml
+        example: !include examples/insert_object_example.raml
+    responses:
+      200:
+        body:
+          application/json:
+            type: object
+            properties:
+              Message: 
+               type: string
+               example: " data inserted successfully"
+
+      
+  /{student_id}:
+    displayName: Deal with particular student data
+    description: Returns detail of one student or update based on uri parameter
+    get:
+     is:
+      - commonError
+     responses:
+       200:
+         body:
+           application/json:
+             type: !include datatype/response_object_api.raml
+             example: !include examples/response_object_example.raml
+      
+    put:
+        is:
+          - commonError
+        body:
+          application/json:
+            type: !include datatype/insert_object_api.raml
+            example: !include examples/insert_object_example.raml
+        responses:
+         200:
+          body:
+           application/json:
+            type: object
+            properties:
+              Message: 
+               type: string
+               example: " data Updated successfully"

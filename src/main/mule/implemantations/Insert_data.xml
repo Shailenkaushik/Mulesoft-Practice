@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd 
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd">
+	<sub-flow name="asdf" doc:id="1f2bf7a1-2198-4b57-8928-82b5c62edeb7" >
+		<logger level="INFO" doc:name="Logger" doc:id="73139893-14c6-4593-bf2d-952f12798cfd" message="#[payload]" />
+	</sub-flow>
+	<flow name="post:\data:application\json:practice-config">
+        <ee:transform doc:name="Transform Message" doc:id="c734adaa-4e5d-4e3e-8208-95f9a4094d7b" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+{
+	student_id: payload.student_id,
+	student_name: payload.student_name,
+	student_email: payload.student_email default ""
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<db:insert doc:name="Insert" doc:id="1219fb72-0927-4482-9705-198d77d62092" config-ref="Database_Config" autoGenerateKeys="true">
+			<db:sql ><![CDATA[INSERT INTO students (student_id, student_name, student_email)VALUES (:student_id, :student_name, :student_email)]]></db:sql>
+			<db:input-parameters ><![CDATA[#[payload]]]></db:input-parameters>
+			<db:auto-generated-keys-column-indexes />
+		</db:insert>
+		<choice doc:name="Choice" doc:id="6440536d-960b-4175-923e-beb2417795b4">
+			<when expression="#[sizeOf(payload)&gt;0]">
+				<ee:transform doc:name="Transform Message">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  code: 200,
+  message: "Data inserted successfully",
+  student_id: payload
+} as Object {encoding: "UTF-8", mediaType: "application/json"}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+			</when>
+			<otherwise>
+				<ee:transform doc:name="Transform Message" doc:id="3e046228-e01c-4f6e-83f0-643486c34f7f">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"message":"go away"
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</otherwise>
+		</choice>
+		<flow-ref doc:name="Flow Reference" doc:id="a5e30115-dd70-48da-8289-7229e6d52e40" name="asdf" />
+    
+</flow>
+	</mule>

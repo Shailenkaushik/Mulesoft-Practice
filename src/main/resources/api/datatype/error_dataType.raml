@@ -1,0 +1,15 @@
+#%RAML 1.0 DataType
+type: object
+properties:
+  code:
+    type: number
+    required: true
+    example: 400
+  message:
+    type: string
+    required: true
+    example: "A human readable message that describes the error / exception occurred"
+  description: 
+    type: string
+    required: true
+    example: "A human readable, comprehensive explanation of the occurred exception"

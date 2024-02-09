@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd 
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd">
+	<flow name="put:\data\(student_id):application\json:practice-config">
+        <ee:transform doc:name="Transform Message">
+            <ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+{
+	student_name: payload.student_name,
+	student_email: payload.student_email default "",
+	student_id: payload.student_id
+}]]></ee:set-payload>
+			</ee:message>
+			<ee:variables>
+                <ee:set-variable variableName="student_id"><![CDATA[attributes.uriParams.'student_id']]></ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+		<db:update doc:name="Update" doc:id="ec324a83-4609-41e8-89f3-ecd369455202" config-ref="Database_Config">
+			<db:sql><![CDATA[UPDATE students SET student_name = :student_name,student_email = :student_email WHERE student_id = :student_id]]></db:sql>
+			<db:input-parameters><![CDATA[#[payload]]]></db:input-parameters>
+		</db:update>
+		<choice doc:name="Choice" doc:id="80b396a4-b7d7-4913-b809-2fa3642b2819" >
+			<when expression="#[payload.affectedRows&gt;0]" >
+				<ee:transform doc:name="Transform Message" doc:id="8eb1cb4c-ead2-4e6f-abe8-5c0736ec4d06" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"Message":"your data has been updated successfully"
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</when>
+			<otherwise >
+				<ee:transform doc:name="Transform Message" doc:id="e9ae54e6-2377-419f-bfbf-90d52841641a" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"message":"Unable to update data for given student_id"
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</otherwise>
+		</choice>
+    </flow>
+	</mule>
